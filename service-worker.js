@@ -1,6 +1,6 @@
 const CACHE_NAME = 'inventory-app-cache-v1';
 const urlsToCache = [
-  '/',
+  '/inwentura',
   '/inwentura/index.html',
   '/inwentura/manifest.json',
   'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js',
