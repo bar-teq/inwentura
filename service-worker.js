@@ -4,8 +4,8 @@ const urlsToCache = [
   '/index.html',
   '/manifest.json',
   'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js',
-  '/icons/icon-192x192.png',
-  '/icons/icon-512x512.png',
+  '/inwentura/icons/icon-192x192.png',
+  '/inwentura/icons/icon-512x512.png',
   // Dodaj inne zasoby, które chcesz cachować, np. pliki CSS, JS, obrazy
 ];
 
