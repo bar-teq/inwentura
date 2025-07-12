@@ -1,0 +1,1225 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aplikacja Inwentaryzacyjna</title>
+    <!-- Link do manifestu PWA -->
+    <link rel="manifest" href="/manifest.json">
+    <style>
+        /* Stylizacja dla body */
+        body {
+            font-family: 'Inter', sans-serif; /* Użycie fontu Inter */
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f7f6;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+            color: #333;
+        }
+
+        /* Stylizacja dla kontenera głównego */
+        .container {
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 500px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            gap: 20px; /* Dodano odstęp między sekcjami */
+        }
+
+        /* Stylizacja dla nagłówka h1 */
+        #appTitle { /* Zmieniono selektor na ID dla specyficzności */
+            color: #333;
+            font-size: 2.5em; /* Domyślny rozmiar */
+            margin-bottom: 0; /* Usunięto domyślny margines */
+            transition: font-size 0.3s ease; /* Płynne przejście rozmiaru czcionki */
+        }
+
+        /* Nowy styl dla mniejszej czcionki tytułu */
+        #appTitle.small-font {
+            font-size: 1.5em;
+        }
+
+        /* NOWA SEKCJA: Kontener na górne przyciski */
+        .top-buttons-container {
+            display: flex;
+            flex-wrap: wrap; /* Umożliwia zawijanie na mniejszych ekranach */
+            gap: 10px;
+            margin-bottom: 20px; /* Odstęp od reszty zawartości */
+            justify-content: center; /* Wyśrodkowanie przycisków */
+        }
+
+        .top-buttons-container button {
+            flex: 1; /* Równa szerokość dla przycisków */
+            min-width: 120px; /* Minimalna szerokość, aby nie były zbyt małe */
+            padding: 10px 15px;
+            font-size: 0.95em;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s ease, transform 0.1s ease, box-shadow 0.2s ease;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            font-weight: bold;
+        }
+
+        /* Usunięto display: none; dla tego przycisku, aby był zawsze widoczny */
+        #backToMainBtn {
+            background-color: #f0ad4e; /* Pomarańczowy */
+            color: white;
+            /* display: none; */ /* Usunięto to */
+        }
+
+        #backToMainBtn:hover {
+            background-color: #ec971f;
+            transform: translateY(-2px);
+        }
+
+        #backToMainBtn:active {
+            background-color: #d58512;
+            transform: translateY(0);
+        }
+
+        #showMissingMachinesBtnTop { /* Zmieniono ID dla przycisku na górze */
+            background-color: #007bff; /* Niebieski */
+            color: white;
+        }
+
+        #showMissingMachinesBtnTop:hover {
+            background-color: #0056b3;
+            transform: translateY(-2px);
+        }
+
+        #showMissingMachinesBtnTop:active {
+            background-color: #004085;
+            transform: translateY(0);
+        }
+
+        #showCategorizedListBtnTop { /* Zmieniono ID dla przycisku na górze */
+            background-color: #6c757d; /* Szary */
+            color: white;
+        }
+
+        #showCategorizedListBtnTop:hover {
+            background-color: #5a6268;
+            transform: translateY(-2px);
+        }
+
+        #showCategorizedListBtnTop:active {
+            background-color: #495057;
+            transform: translateY(0);
+        }
+
+        /* NOWY PRZYCISK: Pokaż listę wg statusów */
+        #showStatusListBtnTop {
+            background-color: #9c27b0; /* Fioletowy */
+            color: white;
+        }
+
+        #showStatusListBtnTop:hover {
+            background-color: #7b1fa2;
+            transform: translateY(-2px);
+        }
+
+        #showStatusListBtnTop:active {
+            background-color: #6a1b9a;
+            transform: translateY(0);
+        }
+
+
+        /* Stylizacja dla sekcji wczytywania pliku */
+        .file-upload-section {
+            text-align: left;
+            border: 1px dashed #ccc;
+            padding: 15px;
+            border-radius: 8px;
+            background-color: #fcfcfc;
+        }
+
+        .file-upload-section label {
+            display: block;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+            color: #555;
+        }
+
+        .file-upload-section input[type="file"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #fff;
+            cursor: pointer;
+        }
+
+        /* Stylizacja dla sekcji wyszukiwania */
+        .search-section {
+            text-align: left;
+        }
+
+        /* Stylizacja dla etykiety inputa */
+        .search-section label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 1.1em;
+            color: #555;
+        }
+
+        /* Stylizacja dla pola input */
+        #searchInput {
+            width: 100%;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 1.8em;
+            text-align: center;
+            background-color: #fdfdff;
+            box-sizing: border-box;
+            color: #333;
+            font-weight: bold;
+            outline: none; /* Usunięcie domyślnego obramowania focus */
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        #searchInput:focus {
+            border-color: #4CAF50; /* Zmiana koloru obramowania przy focusie */
+            box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.2); /* Delikatny cień przy focusie */
+        }
+
+        /* Stylizacja dla wirtualnej klawiatury */
+        .keyboard {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+
+        /* Stylizacja dla przycisków klawiatury */
+        .key {
+            background-color: #4CAF50; /* Zielony */
+            color: white;
+            padding: 20px 0;
+            font-size: 1.8em;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s ease, transform 0.1s ease, box-shadow 0.2s ease;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            font-weight: bold;
+        }
+
+        .key:hover {
+            background-color: #45a049;
+            transform: translateY(-2px);
+        }
+
+        .key:active {
+            background-color: #3e8e41;
+            transform: translateY(0);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Specyficzne style dla przycisku "CZYŚĆ" */
+        .key.clear {
+            background-color: #f44336; /* Czerwony */
+        }
+
+        .key.clear:hover {
+            background-color: #da190b;
+        }
+
+        /* Specyficzne style dla przycisku "USUŃ" */
+        .key.backspace {
+            background-color: #ff9800; /* Pomarańczowy */
+        }
+
+        .key.backspace:hover {
+            background-color: #e68a00;
+        }
+
+        /* Stylizacja dla sekcji listy maszyn */
+        .machine-list-section h2 {
+            color: #333;
+            font-size: 1.6em;
+            text-align: left;
+            margin-bottom: 15px;
+        }
+
+        /* Stylizacja dla listy maszyn (ul) */
+        #machineList {
+            list-style: none;
+            padding: 0;
+            max-height: 300px; /* Ograniczenie wysokości dla przewijania */
+            overflow-y: auto; /* Włączenie przewijania pionowego */
+            border: 1px solid #eee;
+            border-radius: 8px;
+            background-color: #f9f9f9;
+            padding: 10px;
+        }
+
+        /* Stylizacja dla pojedynczego elementu listy maszyn (li) */
+        #machineList li {
+            background-color: #ffffff;
+            padding: 12px 15px;
+            margin-bottom: 8px;
+            border-radius: 6px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+            display: flex;
+            flex-direction: column; /* Ułożenie elementów w kolumnie */
+            align-items: flex-start; /* Wyrównanie do lewej */
+            border-left: 5px solid #4CAF50; /* Zielona linia po lewej */
+            transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
+            cursor: pointer; /* Dodano kursor wskazujący na klikalność */
+        }
+
+        #machineList li:hover {
+            transform: translateX(5px); /* Lekkie przesunięcie przy najechaniu */
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        #machineList li:last-child {
+            margin-bottom: 0;
+        }
+
+        /* Kontener dla nazwy maszyny */
+        #machineList li .machine-name-row {
+            width: 100%;
+            text-align: right; /* Wyrównanie nazwy do prawej */
+            margin-bottom: 5px; /* Odstęp między nazwą a detalami */
+        }
+
+        /* Kontener dla ID i statusu */
+        #machineList li .machine-details-row {
+            width: 100%;
+            display: flex;
+            justify-content: flex-start; /* ID i status wyrównane do lewej */
+            align-items: center;
+            gap: 10px; /* Odstęp między ID a statusem */
+        }
+
+        /* Stylizacja dla nazwy maszyny */
+        #machineList li span.name {
+            font-weight: bold;
+            color: #333;
+            font-size: 1em; /* Ujednolicona czcionka */
+        }
+
+        /* Stylizacja dla ID maszyny */
+        #machineList li span.id {
+            color: #666;
+            font-size: 1em; /* Ujednolicona czcionka */
+            background-color: #e0f7fa; /* Jasnoniebieskie tło */
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-family: monospace; /* Czcionka monospace dla ID */
+        }
+
+        /* Stylizacja dla statusu maszyny */
+        #machineList li span.status {
+            color: #555;
+            font-size: 1em; /* Ujednolicona czcionka */
+            background-color: #f0f0f0; /* Jasnoszare tło */
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-style: italic;
+        }
+
+        /* Nowy styl dla maszyn oznaczonych jako obecne */
+        #machineList li.is-present {
+            background-color: #d4edda; /* Jaśniejszy zielony */
+            border-color: #28a745; /* Ciemniejszy zielony */
+            box-shadow: 0 4px 10px rgba(40, 167, 69, 0.2); /* Cień z zielonym akcentem */
+        }
+
+        #machineList li.is-present span.name {
+            color: #28a745; /* Zmiana koloru tekstu na ciemniejszy zielony */
+        }
+
+        #machineList li.is-present span.id,
+        #machineList li.is-present span.status { /* Zastosuj styl do obu spanów */
+            background-color: #28a745; /* Zmiana koloru tła ID/Statusu na ciemniejszy zielony */
+            color: white; /* Biały tekst ID/Statusu */
+        }
+
+
+        /* Stylizacja dla komunikatu o braku wyników */
+        .no-results {
+            color: #777;
+            text-align: center;
+            padding: 20px;
+            font-style: italic;
+            font-size: 1.1em;
+            background-color: #fff3cd; /* Żółte tło */
+            border: 1px solid #ffeeba;
+            border-radius: 8px;
+        }
+
+        /* Stylizacja dla sekcji listy brakujących maszyn */
+        .missing-machines-section {
+            margin-top: 20px;
+            text-align: left;
+            background-color: #ffe0b2; /* Jasnopomarańczowe tło */
+            border: 1px solid #ffcc80;
+            border-radius: 8px;
+            padding: 15px;
+            min-height: 80px; /* Minimalna wysokość */
+            font-style: italic;
+            color: #e65100;
+        }
+
+        .missing-machines-section h3 {
+            margin-top: 0;
+            color: #e65100;
+            font-size: 1.4em;
+        }
+
+        .missing-machines-section ul {
+            list-style: none;
+            padding: 0;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .missing-machines-section li {
+            background-color: #fff3e0;
+            padding: 8px 12px;
+            margin-bottom: 5px;
+            border-radius: 4px;
+            display: flex;
+            flex-wrap: wrap; /* Umożliwia zawijanie elementów */
+            justify-content: space-between;
+            align-items: center;
+            border-left: 3px solid #ff9800;
+        }
+
+        .missing-machines-section li span.name {
+            font-weight: bold;
+            color: #333;
+        }
+
+        .missing-machines-section li span.id {
+            color: #666;
+            font-size: 0.8em;
+            background-color: #ffebcd;
+            padding: 3px 8px;
+            border-radius: 3px;
+            font-family: monospace;
+        }
+
+        /* NOWOŚĆ: Stylizacja statusu w liście brakujących maszyn */
+        .missing-machines-section li span.status {
+            color: #555;
+            font-size: 0.8em;
+            background-color: #f0f0f0;
+            padding: 3px 8px;
+            border-radius: 3px;
+            font-style: italic;
+            margin-left: 10px;
+        }
+
+        /* Stylizacja dla widoku kategorii */
+        .categorized-list-section {
+            margin-top: 20px;
+            text-align: left;
+            background-color: #e0f7fa; /* Jasnoniebieskie tło */
+            border: 1px solid #b2ebf2;
+            border-radius: 8px;
+            padding: 15px;
+        }
+
+        .categorized-list-section h3 {
+            margin-top: 0;
+            color: #00796b; /* Ciemniejszy turkus */
+            font-size: 1.6em;
+            margin-bottom: 15px;
+        }
+
+        .category-group {
+            margin-bottom: 20px;
+            padding: 10px;
+            border: 1px solid #b2ebf2;
+            border-radius: 8px;
+            background-color: #ffffff;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        }
+
+        /* Stylizacja nagłówka kategorii (kliknięcie do rozwijania) */
+        .category-group h4 {
+            color: #00796b;
+            font-size: 1.3em;
+            margin-top: 0;
+            margin-bottom: 10px;
+            border-bottom: 2px solid #e0f7fa;
+            padding-bottom: 5px;
+            cursor: pointer; /* Wskazuje na klikalność */
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            user-select: none; /* Zapobiega zaznaczaniu tekstu przy szybkim klikaniu */
+        }
+
+        /* Stylizacja ikony rozwijania */
+        .category-group h4 .toggle-icon {
+            font-size: 0.8em;
+            margin-left: 10px;
+            transition: transform 0.2s ease; /* Animacja obrotu */
+        }
+
+        /* Obrót ikony, gdy kategoria jest rozwinięta */
+        .category-group h4.expanded .toggle-icon {
+            transform: rotate(90deg); /* Obrót o 90 stopni w prawo */
+        }
+
+        /* Kontener na zawartość kategorii (lista maszyn) */
+        .category-content {
+            max-height: 0; /* Domyślnie zwinięte */
+            overflow: hidden;
+            transition: max-height 0.3s ease-out; /* Płynne rozwijanie/zwijanie */
+        }
+
+        /* Rozwinięta zawartość kategorii */
+        .category-content.expanded {
+            max-height: 1000px; /* Wystarczająco duża wartość, aby pomieścić zawartość */
+        }
+
+
+        .category-group ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .category-group li {
+            background-color: #f0fdfd;
+            padding: 10px 15px;
+            margin-bottom: 5px;
+            border-radius: 5px;
+            display: flex;
+            flex-direction: column; /* Ułożenie elementów w kolumnie */
+            align-items: flex-start; /* Wyrównanie do lewej */
+            border-left: 4px solid #00bcd4; /* Turkusowa linia */
+            font-size: 0.95em;
+            cursor: pointer; /* Dodano kursor wskazujący na klikalność */
+            transition: background-color 0.2s ease, border-color 0.2s ease; /* Dodano przejścia */
+        }
+
+        .category-group li:hover {
+            background-color: #e6f7f7; /* Jaśniejszy kolor przy najechaniu */
+        }
+
+        .category-group li:last-child {
+            margin-bottom: 0;
+        }
+
+        /* Kontener dla nazwy maszyny w kategorii */
+        .category-group li .machine-name-row {
+            width: 100%;
+            text-align: right; /* Wyrównanie nazwy do prawej */
+            margin-bottom: 5px; /* Odstęp między nazwą a detalami */
+        }
+
+        /* Kontener dla ID w kategorii */
+        .category-group li .machine-details-row {
+            width: 100%;
+            display: flex;
+            justify-content: flex-start; /* ID wyrównane do lewej */
+            align-items: center;
+        }
+
+        .category-group li .name {
+            font-weight: bold;
+            color: #333;
+            font-size: 1em; /* Ujednolicona czcionka */
+        }
+
+        .category-group li .id {
+            color: #666;
+            font-size: 1em; /* Ujednolicona czcionka */
+            background-color: #e0f7fa;
+            padding: 3px 8px;
+            border-radius: 3px;
+            font-family: monospace;
+        }
+
+        /* Styl dla maszyn oznaczonych jako obecne w widoku kategorii */
+        .category-group li.is-present {
+            background-color: #d4edda; /* Jaśniejszy zielony */
+            border-color: #28a745; /* Ciemniejszy zielony */
+        }
+
+        .category-group li.is-present .name {
+            color: #28a745;
+        }
+
+        .category-group li.is-present .id {
+            background-color: #28a745;
+            color: white;
+        }
+
+        /* NOWA SEKCJA: Stylizacja dla widoku statusów */
+        .status-list-section {
+            margin-top: 20px;
+            text-align: left;
+            background-color: #ede7f6; /* Jasnofioletowe tło */
+            border: 1px solid #d1c4e9;
+            border-radius: 8px;
+            padding: 15px;
+        }
+
+        .status-list-section h3 {
+            margin-top: 0;
+            color: #4527a0; /* Ciemniejszy fiolet */
+            font-size: 1.6em;
+            margin-bottom: 15px;
+        }
+
+        .status-group {
+            margin-bottom: 10px; /* Zmniejszony margines, bo nie ma rozwijanej listy */
+            padding: 10px;
+            border: 1px solid #d1c4e9;
+            border-radius: 8px;
+            background-color: #ffffff;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        }
+
+        /* Stylizacja nagłówka statusu (kliknięcie do zaznaczania/odznaczania) */
+        .status-group h4 {
+            color: #4527a0;
+            font-size: 1.3em;
+            margin: 0; /* Usunięto marginesy, aby h4 był jedynym elementem */
+            padding: 5px 0; /* Dodano padding, aby był klikalny obszar */
+            cursor: pointer; /* Wskazuje na klikalność */
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            user-select: none;
+            font-weight: bold; /* Pogrubienie dla lepszej widoczności */
+            transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease; /* Dodano przejścia */
+        }
+
+        .status-group h4:hover {
+            background-color: #e1bee7; /* Lekkie podświetlenie przy najechaniu */
+            border-radius: 5px; /* Zaokrąglone rogi przy hoverze */
+        }
+
+        /* NOWOŚĆ: Styl dla nagłówka statusu, gdy wszystkie maszyny są obecne */
+        .status-group h4.is-present {
+            background-color: #28a745; /* Ciemniejszy zielony */
+            color: white; /* Biały tekst */
+            border-color: #28a745; /* Zielona linia */
+        }
+
+
+        /* Usunięto style dla toggle-icon, ponieważ statusy nie będą rozwijane */
+        /* .status-group h4 .toggle-icon { ... } */
+        /* .status-group h4.expanded .toggle-icon { ... } */
+
+        /* Kontener na zawartość statusu (lista maszyn) - usunięty */
+        /* .status-content { ... } */
+        /* .status-content.expanded { ... } */
+
+        /* Usunięto style dla ul i li w status-group, ponieważ nie będą wyświetlane */
+        /* .status-group ul { ... } */
+        /* .status-group li { ... } */
+        /* .status-group li:hover { ... } */
+        /* .status-group li:last-child { ... } */
+        /* .status-group li .name { ... } */
+        /* .status-group li .id { ... } */
+        /* .status-group li.is-present { ... } */
+        /* .status-group li.is-present .name { ... } */
+        /* .status-group li.is-present .id { ... } */
+
+
+        /* Dostosowania responsywne */
+        @media (max-width: 600px) {
+            .top-buttons-container {
+                flex-direction: column; /* Przyciski jeden pod drugim na małych ekranach */
+            }
+            .top-buttons-container button {
+                width: 100%; /* Pełna szerokość */
+            }
+            #machineList li {
+                flex-direction: column; /* Ułożenie w kolumnie na małych ekranach */
+                align-items: flex-start;
+                gap: 5px;
+            }
+            #machineList li span.id,
+            #machineList li span.status {
+                margin-left: 0; /* Usuń margines na małych ekranach */
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 id="appTitle">inwentura by bar-teq</h1>
+
+        <!-- NOWA SEKCJA: Przyciski nawigacyjne na górze -->
+        <div class="top-buttons-container">
+            <button id="showStatusListBtnTop">STATUSY</button> <!-- Zmieniono kolejność -->
+            <button id="showMissingMachinesBtnTop">Brakujące maszyny</button>
+            <button id="showCategorizedListBtnTop">Kategorie</button>
+            <button id="backToMainBtn">Powrót do menu głównego</button>
+        </div>
+
+        <!-- Sekcja do wczytywania pliku XLS -->
+        <div class="file-upload-section" id="fileUploadSection">
+            <label for="xlsFileInput">Wgraj plik XLS/XLSX z listą maszyn:</label>
+            <input type="file" id="xlsFileInput" accept=".xls,.xlsx">
+        </div>
+
+        <!-- Sekcje głównego widoku (wyszukiwanie, klawiatura, lista filtrowana) -->
+        <div id="mainViewSections">
+            <div class="search-section">
+
+                <input type="text" id="searchInput" readonly placeholder="Numer maszyny...">
+            </div>
+
+            <div class="keyboard">
+                <button class="key" data-value="1">1</button>
+                <button class="key" data-value="2">2</button>
+                <button class="key" data-value="3">3</button>
+                <button class="key" data-value="4">4</button>
+                <button class="key" data-value="5">5</button>
+                <button class="key" data-value="6">6</button>
+                <button class="key" data-value="7">7</button>
+                <button class="key" data-value="8">8</button>
+                <button class="key" data-value="9">9</button>
+                <button class="key clear" data-value="clear">CZYŚĆ</button>
+                <button class="key" data-value="0">0</button>
+                <button class="key backspace" data-value="backspace"><--</button>
+            </div>
+
+            <div class="machine-list-section">
+                <h2>Lista maszyn:</h2>
+                <ul id="machineList">
+                    <!-- Maszyny będą wstawiane tutaj przez JavaScript -->
+                </ul>
+                <p id="noResultsMessage" class="no-results" style="display: none;">
+                    Brak maszyn spełniających kryteria wyszukiwania.
+                </p>
+            </div>
+        </div>
+
+        <!-- Sekcja do wyświetlania listy brakujących maszyn -->
+        <div class="missing-machines-section" id="missingMachinesListDiv" style="display: none;">
+            <h3>Brakujące maszyny:</h3>
+            <ul id="missingMachinesUl">
+                <!-- Brakujące maszyny będą wstawiane tutaj -->
+            </ul>
+            <p id="allMachinesPresentMessage" style="display: none; text-align: center; font-style: normal; color: #28a745;">
+                Wszystkie maszyny zostały zaznaczone jako obecne!
+            </p>
+        </div>
+
+        <!-- Sekcja do wyświetlania listy maszyn wg kategorii -->
+        <div class="categorized-list-section" id="categorizedListDiv" style="display: none;">
+            <h3>Lista maszyn wg kategorii:</h3>
+            <div id="categoriesContainer">
+                <!-- Kategorie i maszyny będą wstawiane tutaj przez JavaScript -->
+            </div>
+            <p id="noCategoriesMessage" class="no-results" style="display: none;">
+                Brak kategorii lub maszyn do wyświetlenia.
+            </p>
+        </div>
+
+        <!-- NOWA SEKCJA: do wyświetlania listy maszyn wg statusów -->
+        <div class="status-list-section" id="statusListDiv" style="display: none;">
+            <h3>Lista statusów:</h3> <!-- Zmieniono nagłówek -->
+            <div id="statusesContainer">
+                <!-- Statusy będą wstawiane tutaj przez JavaScript -->
+            </div>
+            <p id="noStatusesMessage" class="no-results" style="display: none;">
+                Brak statusów do wyświetlenia.
+            </p>
+        </div>
+    </div>
+
+    <!-- Dołącz bibliotekę SheetJS (xlsx.full.min.js) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+    <script>
+        // Rejestracja Service Workera
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/service-worker.js')
+                    .then(registration => {
+                        console.log('ServiceWorker registration successful with scope: ', registration.scope);
+                    })
+                    .catch(err => {
+                        console.log('ServiceWorker registration failed: ', err);
+                    });
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const xlsFileInput = document.getElementById('xlsFileInput');
+            const fileUploadSection = document.getElementById('fileUploadSection');
+            const searchInput = document.getElementById('searchInput');
+            const keyboard = document.querySelector('.keyboard');
+            const machineListUl = document.getElementById('machineList');
+            const noResultsMessage = document.getElementById('noResultsMessage');
+            const missingMachinesListDiv = document.getElementById('missingMachinesListDiv');
+            const missingMachinesUl = document.getElementById('missingMachinesUl');
+            const allMachinesPresentMessage = document.getElementById('allMachinesPresentMessage');
+            const appTitle = document.getElementById('appTitle');
+
+            const backToMainBtn = document.getElementById('backToMainBtn');
+            const showMissingMachinesBtnTop = document.getElementById('showMissingMachinesBtnTop');
+            const showCategorizedListBtnTop = document.getElementById('showCategorizedListBtnTop');
+            const showStatusListBtnTop = document.getElementById('showStatusListBtnTop');
+            const categorizedListDiv = document.getElementById('categorizedListDiv');
+            const categoriesContainer = document.getElementById('categoriesContainer');
+            const noCategoriesMessage = document.getElementById('noCategoriesMessage');
+            const statusListDiv = document.getElementById('statusListDiv');
+            const statusesContainer = document.getElementById('statusesContainer');
+            const noStatusesMessage = document.getElementById('noStatusesMessage');
+            const mainViewSections = document.getElementById('mainViewSections');
+
+            // Lista wszystkich maszyn, początkowo pusta
+            let allMachines = [];
+
+            let currentSearchTerm = '';
+            // Zmieniono na Set do przechowywania ID obecnych maszyn
+            let presentMachinesIds = new Set();
+            let expandedCategories = new Set(); // Przechowuje nazwy rozwiniętych kategorii
+
+            // Klucz do localStorage
+            const LOCAL_STORAGE_KEY_PRESENT_MACHINES = 'presentMachinesIds';
+            const LOCAL_STORAGE_KEY_ALL_MACHINES = 'allMachines'; // Nowy klucz do przechowywania wszystkich maszyn
+
+            // Funkcja do zapisywania presentMachinesIds do localStorage
+            function savePresentMachines() {
+                localStorage.setItem(LOCAL_STORAGE_KEY_PRESENT_MACHINES, JSON.stringify(Array.from(presentMachinesIds)));
+            }
+
+            // Funkcja do wczytywania presentMachinesIds z localStorage
+            function loadPresentMachines() {
+                const storedIds = localStorage.getItem(LOCAL_STORAGE_KEY_PRESENT_MACHINES);
+                if (storedIds) {
+                    presentMachinesIds = new Set(JSON.parse(storedIds));
+                } else {
+                    presentMachinesIds = new Set(); // Upewnij się, że jest to Set, nawet jeśli brak danych
+                }
+            }
+
+            // Funkcja do zapisywania wszystkich maszyn do localStorage
+            function saveAllMachines() {
+                localStorage.setItem(LOCAL_STORAGE_KEY_ALL_MACHINES, JSON.stringify(allMachines));
+            }
+
+            // Funkcja do wczytywania wszystkich maszyn z localStorage
+            function loadAllMachines() {
+                const storedMachines = localStorage.getItem(LOCAL_STORAGE_KEY_ALL_MACHINES);
+                if (storedMachines) {
+                    allMachines = JSON.parse(storedMachines);
+                } else {
+                    allMachines = [];
+                }
+            }
+
+            // Funkcja do przełączania widoków
+            function showView(viewId) {
+                // Ukryj wszystkie główne sekcje
+                fileUploadSection.style.display = 'none';
+                mainViewSections.style.display = 'none';
+                missingMachinesListDiv.style.display = 'none';
+                categorizedListDiv.style.display = 'none';
+                statusListDiv.style.display = 'none';
+
+                // Przycisk powrotu do menu głównego jest teraz zawsze widoczny dzięki CSS
+                // backToMainBtn.style.display = 'none'; // Usunięto to
+
+                if (viewId === 'main') {
+                    fileUploadSection.style.display = 'block';
+                    mainViewSections.style.display = 'block';
+                    filterMachines();
+                } else if (viewId === 'missing') {
+                    missingMachinesListDiv.style.display = 'block';
+                    renderMissingMachines();
+                    // backToMainBtn.style.display = 'block'; // Usunięto to
+                } else if (viewId === 'categorized') {
+                    categorizedListDiv.style.display = 'block';
+                    renderCategorizedList();
+                    // backToMainBtn.style.display = 'block'; // Usunięto to
+                } else if (viewId === 'status') {
+                    statusListDiv.style.display = 'block';
+                    renderStatusList(); // Wygeneruj listę statusów
+                    // backToMainBtn.style.display = 'block'; // Usunięto to
+                }
+            }
+
+            // Funkcja do renderowania listy maszyn (główny widok)
+            function renderMachines(machinesToDisplay) {
+                machineListUl.innerHTML = '';
+
+                if (machinesToDisplay.length === 0) {
+                    noResultsMessage.style.display = 'block';
+                } else {
+                    noResultsMessage.style.display = 'none';
+                    machinesToDisplay.forEach(machine => {
+                        const li = document.createElement('li');
+                        li.dataset.id = machine.id;
+                        // Nowa struktura: nazwa na górze (wyrównana do prawej), ID i status na dole (wyrównane do lewej)
+                        li.innerHTML = `
+                            <div class="machine-name-row">
+                                <span class="name">${machine.name}</span>
+                            </div>
+                            <div class="machine-details-row">
+                                <span class="id">ID: ${machine.id}</span>
+                                <span class="status">Status: ${machine.status || 'Brak danych'}</span>
+                            </div>
+                        `;
+                        if (presentMachinesIds.has(machine.id)) {
+                            li.classList.add('is-present');
+                        }
+                        machineListUl.appendChild(li);
+                    });
+                }
+            }
+
+            // Funkcja do filtrowania maszyn (dla głównego widoku)
+            function filterMachines() {
+                const searchTerm = currentSearchTerm.trim();
+                if (searchTerm === '') {
+                    renderMachines(allMachines);
+                } else {
+                    const filtered = allMachines.filter(machine =>
+                        machine.id.includes(searchTerm)
+                    );
+                    renderMachines(filtered);
+                }
+            }
+
+            // Funkcja do renderowania listy brakujących maszyn
+            function renderMissingMachines() {
+                missingMachinesUl.innerHTML = '';
+
+                const missingMachines = allMachines.filter(machine =>
+                    !presentMachinesIds.has(machine.id)
+                );
+
+                if (missingMachines.length === 0) {
+                    allMachinesPresentMessage.style.display = 'block';
+                    missingMachinesUl.innerHTML = '';
+                } else {
+                    allMachinesPresentMessage.style.display = 'none';
+                    missingMachines.forEach(machine => {
+                        const li = document.createElement('li');
+                        // Zachowano oryginalny układ dla brakujących maszyn, jeśli nie było innej instrukcji
+                        li.innerHTML = `
+                            <span class="name">${machine.name}</span>
+                            <div>
+                                <span class="id">ID: ${machine.id}</span>
+                                <span class="status">Status: ${machine.status || 'Brak danych'}</span>
+                            </div>
+                        `;
+                        missingMachinesUl.appendChild(li);
+                    });
+                }
+            }
+
+            // Funkcja do renderowania listy maszyn wg kategorii
+            function renderCategorizedList() {
+                categoriesContainer.innerHTML = '';
+
+                const categories = {};
+                allMachines.forEach(machine => {
+                    const categoryName = machine.category || 'Bez kategorii';
+                    if (!categories[categoryName]) {
+                        categories[categoryName] = [];
+                    }
+                    categories[categoryName].push(machine);
+                });
+
+                const sortedCategoryNames = Object.keys(categories).sort();
+
+                if (sortedCategoryNames.length === 0) {
+                    noCategoriesMessage.style.display = 'block';
+                } else {
+                    noCategoriesMessage.style.display = 'none';
+                    sortedCategoryNames.forEach(categoryName => {
+                        const categoryGroupDiv = document.createElement('div');
+                        categoryGroupDiv.classList.add('category-group');
+
+                        const h4 = document.createElement('h4');
+                        h4.textContent = categoryName;
+                        const toggleIcon = document.createElement('span');
+                        toggleIcon.classList.add('toggle-icon');
+                        h4.appendChild(toggleIcon);
+                        categoryGroupDiv.appendChild(h4);
+
+                        const categoryContentDiv = document.createElement('div');
+                        categoryContentDiv.classList.add('category-content');
+                        categoryGroupDiv.appendChild(categoryContentDiv);
+
+                        const ul = document.createElement('ul');
+                        categoryContentDiv.appendChild(ul);
+
+                        if (expandedCategories.has(categoryName)) {
+                            categoryContentDiv.classList.add('expanded');
+                            h4.classList.add('expanded');
+                            toggleIcon.textContent = '▼';
+                        } else {
+                            toggleIcon.textContent = '▶';
+                        }
+
+                        h4.addEventListener('click', () => {
+                            const isExpanded = categoryContentDiv.classList.toggle('expanded');
+                            h4.classList.toggle('expanded');
+                            toggleIcon.textContent = isExpanded ? '▼' : '▶';
+
+                            if (isExpanded) {
+                                expandedCategories.add(categoryName);
+                            } else {
+                                expandedCategories.delete(categoryName);
+                            }
+                        });
+
+                        categories[categoryName].sort((a, b) => a.id.localeCompare(b.id));
+
+                        categories[categoryName].forEach(machine => {
+                            const li = document.createElement('li');
+                            li.dataset.id = machine.id;
+                            // Nowa struktura: nazwa na górze (wyrównana do prawej), ID na dole (wyrównane do lewej)
+                            li.innerHTML = `
+                                <div class="machine-name-row">
+                                    <span class="name">${machine.name}</span>
+                                </div>
+                                <div class="machine-details-row">
+                                    <span class="id">ID: ${machine.id}</span>
+                                </div>
+                            `;
+                            if (presentMachinesIds.has(machine.id)) {
+                                li.classList.add('is-present');
+                            }
+                            ul.appendChild(li);
+
+                            li.addEventListener('click', () => {
+                                const machineId = li.dataset.id;
+                                if (presentMachinesIds.has(machineId)) {
+                                    presentMachinesIds.delete(machineId);
+                                    li.classList.remove('is-present');
+                                } else {
+                                    presentMachinesIds.add(machineId);
+                                    li.classList.add('is-present');
+                                }
+                                savePresentMachines(); // Zapisz zmiany do localStorage
+
+                                const mainViewLi = document.querySelector(`#machineList li[data-id="${machineId}"]`);
+                                if (mainViewLi) {
+                                    if (presentMachinesIds.has(machineId)) {
+                                        mainViewLi.classList.add('is-present');
+                                    } else {
+                                        mainViewLi.classList.remove('is-present');
+                                    }
+                                }
+                            });
+                        });
+                        categoriesContainer.appendChild(categoryGroupDiv);
+                    });
+                }
+            }
+
+            // Funkcja do renderowania listy maszyn wg statusów (nierozwijalna, tylko statusy)
+            function renderStatusList() {
+                statusesContainer.innerHTML = ''; // Wyczyść kontener statusów
+
+                const statuses = {};
+                allMachines.forEach(machine => {
+                    const statusName = machine.status || 'Brak danych';
+                    if (!statuses[statusName]) {
+                        statuses[statusName] = [];
+                    }
+                    statuses[statusName].push(machine);
+                });
+
+                const sortedStatusNames = Object.keys(statuses).sort();
+
+                if (sortedStatusNames.length === 0) {
+                    noStatusesMessage.style.display = 'block';
+                } else {
+                    noStatusesMessage.style.display = 'none';
+                    sortedStatusNames.forEach(statusName => {
+                        const statusGroupDiv = document.createElement('div');
+                        statusGroupDiv.classList.add('status-group');
+
+                        // Nagłówek statusu (kliknięcie do zaznaczania/odznaczania wszystkich maszyn w tej grupie)
+                        const h4 = document.createElement('h4');
+                        h4.textContent = statusName;
+                        statusGroupDiv.appendChild(h4);
+
+                        // Obsługa kliknięcia nagłówka statusu - zaznaczenie/odznaczenie wszystkich maszyn w grupie
+                        h4.addEventListener('click', () => {
+                            const machinesInStatus = allMachines.filter(machine =>
+                                (machine.status || 'Brak danych') === statusName
+                            );
+
+                            // Sprawdź, czy wszystkie maszyny w tej grupie są już zaznaczone
+                            const allPresentInGroup = machinesInStatus.every(machine =>
+                                presentMachinesIds.has(machine.id)
+                            );
+
+                            machinesInStatus.forEach(machine => {
+                                // Aktualizuj stan w presentMachinesIds
+                                if (allPresentInGroup) {
+                                    presentMachinesIds.delete(machine.id);
+                                } else {
+                                    presentMachinesIds.add(machine.id);
+                                }
+
+                                // Znajdź i zaktualizuj odpowiedni element w głównym widoku (jeśli jest widoczny)
+                                const mainViewLi = document.querySelector(`#machineList li[data-id="${machine.id}"]`);
+                                if (mainViewLi) {
+                                    if (presentMachinesIds.has(machine.id)) {
+                                        mainViewLi.classList.add('is-present');
+                                    } else {
+                                        mainViewLi.classList.remove('is-present');
+                                    }
+                                }
+                            });
+                            savePresentMachines(); // Zapisz zmiany do localStorage
+                            // Po zmianie stanu, odśwież widok statusów, aby nagłówki odzwierciedlały stan
+                            renderStatusList(); // Ponowne wywołanie, aby zaktualizować wygląd nagłówków
+                        });
+
+                        // Sprawdź, czy wszystkie maszyny w tej grupie są zaznaczone, aby nadać styl nagłówkowi statusu
+                        const machinesInThisStatus = allMachines.filter(machine =>
+                            (machine.status || 'Brak danych') === statusName
+                        );
+                        const allMachinesInThisStatusPresent = machinesInThisStatus.length > 0 && machinesInThisStatus.every(machine => presentMachinesIds.has(machine.id));
+
+                        if (allMachinesInThisStatusPresent) {
+                            h4.classList.add('is-present'); // Dodaj klasę do nagłówka
+                        } else {
+                            h4.classList.remove('is-present'); // Upewnij się, że klasa jest usunięta
+                        }
+
+                        statusesContainer.appendChild(statusGroupDiv);
+                    });
+                }
+            }
+
+
+            // Obsługa kliknięć wirtualnej klawiatury
+            keyboard.addEventListener('click', (event) => {
+                const target = event.target;
+                if (target.classList.contains('key')) {
+                    const value = target.dataset.value;
+
+                    if (value === 'clear') {
+                        currentSearchTerm = '';
+                    } else if (value === 'backspace') {
+                        currentSearchTerm = currentSearchTerm.slice(0, -1);
+                    } else {
+                        currentSearchTerm += value;
+                    }
+
+                    searchInput.value = currentSearchTerm;
+                    showView('main');
+                }
+            });
+
+            // Obsługa kliknięć na maszynach (oznaczanie jako obecne) w głównym widoku
+            machineListUl.addEventListener('click', (event) => {
+                const clickedLi = event.target.closest('li');
+                if (clickedLi) {
+                    const machineId = clickedLi.dataset.id;
+
+                    if (presentMachinesIds.has(machineId)) {
+                        presentMachinesIds.delete(machineId);
+                        clickedLi.classList.remove('is-present');
+                    } else {
+                        presentMachinesIds.add(machineId);
+                        clickedLi.classList.add('is-present');
+                    }
+                    savePresentMachines(); // Zapisz zmiany do localStorage
+                    showView('main');
+                }
+            });
+
+            // Obsługa wczytywania pliku XLS/XLSX
+            xlsFileInput.addEventListener('change', (event) => {
+                const file = event.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+
+                    reader.onload = (e) => {
+                        const data = new Uint8Array(e.target.result);
+                        const workbook = XLSX.read(data, { type: 'array' });
+
+                        const sheetName = workbook.SheetNames[0];
+                        const worksheet = workbook.Sheets[sheetName];
+
+                        const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+
+                        // Zaktualizuj tytuł aplikacji z komórki A2
+                        if (jsonData.length > 1 && jsonData[1][0]) {
+                            appTitle.textContent = String(jsonData[1][0]).trim();
+                            appTitle.classList.add('small-font');
+                        } else {
+                            appTitle.textContent = 'Aplikacja Inwentaryzacyjna';
+                            appTitle.classList.remove('small-font');
+                        }
+
+                        const newMachines = [];
+                        // Dane maszyn zaczynają się od wiersza 5 w Excelu (indeks 4 w jsonData)
+                        for (let i = 4; i < jsonData.length; i++) {
+                            const row = jsonData[i];
+                            // Kolumna B: indeks 1 (kategoria), Kolumna C: indeks 2 (numer ewidencyjny), Kolumna D: indeks 3 (nazwa), Kolumna H: indeks 7 (status)
+                            const category = row[1] ? String(row[1]).trim() : 'Bez kategorii';
+                            const id = row[2] ? String(row[2]).trim() : null;
+                            const name = row[3] ? String(row[3]).trim() : null;
+                            const status = row[7] ? String(row[7]).trim() : 'Brak danych';
+
+                            if (id && name) {
+                                newMachines.push({ id: id, name: name, status: status, category: category });
+                            }
+                        }
+
+                        allMachines = newMachines;
+                        saveAllMachines(); // Zapisz wszystkie maszyny do localStorage
+                        presentMachinesIds.clear(); // Wyczyść zaznaczenia po wczytaniu nowego pliku
+                        savePresentMachines(); // Zapisz puste zaznaczenia
+                        currentSearchTerm = '';
+                        searchInput.value = '';
+                        expandedCategories.clear(); // Wyczyść stan rozwiniętych kategorii po wczytaniu nowego pliku
+                        showView('main');
+                    };
+
+                    reader.readAsArrayBuffer(file);
+                }
+            });
+
+            // Obsługa przycisku "Powrót do menu głównego"
+            backToMainBtn.addEventListener('click', () => {
+                showView('main');
+            });
+
+            // Obsługa przycisku "Pokaż brakujące maszyny" (teraz na górze)
+            showMissingMachinesBtnTop.addEventListener('click', () => {
+                showView('missing');
+            });
+
+            // Obsługa przycisku "Pokaż listę wg kategorii" (teraz na górze)
+            showCategorizedListBtnTop.addEventListener('click', () => {
+                showView('categorized');
+            });
+
+            // Obsługa przycisku "Pokaż listę wg statusów"
+            showStatusListBtnTop.addEventListener('click', () => {
+                showView('status');
+            });
+
+            // Inicjalne wczytywanie danych i renderowanie listy maszyn po załadowaniu strony
+            loadAllMachines(); // Wczytaj wszystkie maszyny
+            loadPresentMachines(); // Wczytaj zaznaczone maszyny
+            showView('main');
+        });
+    </script>
+</body>
+</html>
