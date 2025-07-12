@@ -2,7 +2,7 @@
   "name": "Aplikacja Inwentaryzacyjna",
   "short_name": "Inwentura",
   "description": "Prosta aplikacja do inwentaryzacji maszyn.",
-  "start_url": "/index.html",
+  "start_url": "/inwentura/index.html",
   "display": "standalone",
   "background_color": "#f4f7f6",
   "theme_color": "#4CAF50",
