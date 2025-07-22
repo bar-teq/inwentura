@@ -372,16 +372,57 @@
             color: #e65100;
         }
 
+        /* Kontener dla nagłówka i przycisku cofania */
+        .missing-machines-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px; /* Odstęp od listy */
+        }
+
         .missing-machines-section h3 {
-            margin-top: 0;
+            margin: 0; /* Usuń domyślne marginesy h3 */
             color: #e65100;
             font-size: 1.4em;
+            display: flex; /* Użyj flexboxa dla licznika wewnątrz h3 */
+            align-items: center;
+            gap: 5px; /* Odstęp między tekstem a licznikiem */
         }
+
+        /* Styl dla przycisku "Cofnij" w sekcji brakujących maszyn */
+        #undoMissingMachineBtn {
+            padding: 8px 12px;
+            font-size: 0.9em;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            background-color: #6c757d; /* Szary */
+            color: white;
+            transition: background-color 0.2s ease, transform 0.1s ease, box-shadow 0.2s ease;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            font-weight: bold;
+        }
+
+        #undoMissingMachineBtn:hover {
+            background-color: #5a6268;
+            transform: translateY(-1px);
+        }
+
+        #undoMissingMachineBtn:active {
+            background-color: #495057;
+            transform: translateY(0);
+        }
+        #undoMissingMachineBtn:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
 
         .missing-machines-section ul {
             list-style: none;
             padding: 0;
-            max-height: 200px;
+            max-height: 400px; /* Zwiększono wysokość dwukrotnie */
             overflow-y: auto;
         }
 
@@ -395,6 +436,13 @@
             justify-content: space-between;
             align-items: center;
             border-left: 3px solid #ff9800;
+            cursor: pointer; /* Dodano kursor wskazujący na klikalność */
+            transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.1s ease;
+        }
+
+        .missing-machines-section li:hover {
+            background-color: #ffcc80; /* Lekkie podświetlenie przy najechaniu */
+            transform: translateX(3px);
         }
 
         .missing-machines-section li span.name {
@@ -484,7 +532,7 @@
 
         /* Rozwinięta zawartość kategorii */
         .category-content.expanded {
-            max-height: 1000px; /* Wystarczająco duża wartość, aby pomieścić zawartość */
+            max-height: 2000px; /* Zwiększono wartość, aby pomieścić więcej zawartości */
         }
 
 
@@ -528,6 +576,7 @@
             display: flex;
             justify-content: flex-start; /* ID wyrównane do lewej */
             align-items: center;
+            gap: 10px; /* Odstęp między ID a statusem */
         }
 
         .category-group li .name {
@@ -545,6 +594,16 @@
             font-family: monospace;
         }
 
+        /* NOWOŚĆ: Stylizacja statusu w liście kategorii */
+        .category-group li span.status {
+            color: #555;
+            font-size: 1em; /* Ujednolicona czcionka */
+            background-color: #f0f0f0;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-style: italic;
+        }
+
         /* Styl dla maszyn oznaczonych jako obecne w widoku kategorii */
         .category-group li.is-present {
             background-color: #d4edda; /* Jaśniejszy zielony */
@@ -559,6 +618,12 @@
             background-color: #28a745;
             color: white;
         }
+        /* Nowy styl dla statusu w kategorii, gdy maszyna jest obecna */
+        .category-group li.is-present span.status {
+            background-color: #28a745;
+            color: white;
+        }
+
 
         /* NOWA SEKCJA: Stylizacja dla widoku statusów */
         .status-list-section {
@@ -707,7 +772,10 @@
 
         <!-- Sekcja do wyświetlania listy brakujących maszyn -->
         <div class="missing-machines-section" id="missingMachinesListDiv" style="display: none;">
-            <h3>Brakujące maszyny:</h3>
+            <div class="missing-machines-header"> <!-- Nowy kontener dla nagłówka i przycisku -->
+                <h3>Brakujące maszyny (<span id="missingCount">0</span>):</h3>
+                <button id="undoMissingMachineBtn">Cofnij</button>
+            </div>
             <ul id="missingMachinesUl">
                 <!-- Brakujące maszyny będą wstawiane tutaj -->
             </ul>
@@ -767,6 +835,8 @@
             const missingMachinesUl = document.getElementById('missingMachinesUl');
             const allMachinesPresentMessage = document.getElementById('allMachinesPresentMessage');
             const appTitle = document.getElementById('appTitle');
+            const missingCountSpan = document.getElementById('missingCount'); // Nowy element do licznika
+            const undoMissingMachineBtn = document.getElementById('undoMissingMachineBtn'); // Przycisk "Cofnij"
 
             const backToMainBtn = document.getElementById('backToMainBtn');
             const showMissingMachinesBtnTop = document.getElementById('showMissingMachinesBtnTop');
@@ -787,6 +857,8 @@
             // Zmieniono na Set do przechowywania ID obecnych maszyn
             let presentMachinesIds = new Set();
             let expandedCategories = new Set(); // Przechowuje nazwy rozwiniętych kategorii
+            // Nowa tablica do przechowywania historii zaznaczonych maszyn z listy brakujących
+            let markedMissingHistory = [];
 
             // Klucz do localStorage
             const LOCAL_STORAGE_KEY_PRESENT_MACHINES = 'presentMachinesIds';
@@ -831,25 +903,19 @@
                 categorizedListDiv.style.display = 'none';
                 statusListDiv.style.display = 'none';
 
-                // Przycisk powrotu do menu głównego jest teraz zawsze widoczny dzięki CSS
-                // backToMainBtn.style.display = 'none'; // Usunięto to
-
                 if (viewId === 'main') {
                     fileUploadSection.style.display = 'block';
                     mainViewSections.style.display = 'block';
                     filterMachines();
                 } else if (viewId === 'missing') {
                     missingMachinesListDiv.style.display = 'block';
-                    renderMissingMachines();
-                    // backToMainBtn.style.display = 'block'; // Usunięto to
+                    renderMissingMachines(); // Renderuj listę brakujących maszyn
                 } else if (viewId === 'categorized') {
                     categorizedListDiv.style.display = 'block';
                     renderCategorizedList();
-                    // backToMainBtn.style.display = 'block'; // Usunięto to
                 } else if (viewId === 'status') {
                     statusListDiv.style.display = 'block';
                     renderStatusList(); // Wygeneruj listę statusów
-                    // backToMainBtn.style.display = 'block'; // Usunięto to
                 }
             }
 
@@ -903,13 +969,18 @@
                     !presentMachinesIds.has(machine.id)
                 );
 
+                missingCountSpan.textContent = missingMachines.length; // Aktualizuj licznik
+
                 if (missingMachines.length === 0) {
                     allMachinesPresentMessage.style.display = 'block';
-                    missingMachinesUl.innerHTML = '';
+                    missingMachinesUl.innerHTML = ''; // Upewnij się, że lista jest pusta
+                    undoMissingMachineBtn.disabled = true; // Wyłącz przycisk "Cofnij" jeśli brak maszyn
                 } else {
                     allMachinesPresentMessage.style.display = 'none';
+                    undoMissingMachineBtn.disabled = markedMissingHistory.length === 0; // Włącz/wyłącz przycisk "Cofnij"
                     missingMachines.forEach(machine => {
                         const li = document.createElement('li');
+                        li.dataset.id = machine.id;
                         // Zachowano oryginalny układ dla brakujących maszyn, jeśli nie było innej instrukcji
                         li.innerHTML = `
                             <span class="name">${machine.name}</span>
@@ -919,6 +990,25 @@
                             </div>
                         `;
                         missingMachinesUl.appendChild(li);
+
+                        // Dodaj listener do kliknięcia na element listy brakujących maszyn
+                        li.addEventListener('click', () => {
+                            const machineId = li.dataset.id;
+                            // Jeśli maszyna jest na liście brakujących, oznacza to, że nie ma jej w presentMachinesIds
+                            // Więc dodajemy ją, aby oznaczyć jako obecną
+                            presentMachinesIds.add(machineId);
+                            markedMissingHistory.push(machineId); // Dodaj do historii
+                            savePresentMachines(); // Zapisz zmiany do localStorage
+
+                            // Odśwież listę brakujących maszyn, aby usunąć zaznaczony element
+                            renderMissingMachines();
+
+                            // Opcjonalnie: zaktualizuj też widok w głównym liście maszyn
+                            const mainViewLi = document.querySelector(`#machineList li[data-id="${machineId}"]`);
+                            if (mainViewLi) {
+                                mainViewLi.classList.add('is-present');
+                            }
+                        });
                     });
                 }
             }
@@ -985,13 +1075,14 @@
                         categories[categoryName].forEach(machine => {
                             const li = document.createElement('li');
                             li.dataset.id = machine.id;
-                            // Nowa struktura: nazwa na górze (wyrównana do prawej), ID na dole (wyrównane do lewej)
+                            // Nowa struktura: nazwa na górze (wyrównana do prawej), ID i status na dole (wyrównane do lewej)
                             li.innerHTML = `
                                 <div class="machine-name-row">
                                     <span class="name">${machine.name}</span>
                                 </div>
                                 <div class="machine-details-row">
                                     <span class="id">ID: ${machine.id}</span>
+                                    <span class="status">Status: ${machine.status || 'Brak danych'}</span>
                                 </div>
                             `;
                             if (presentMachinesIds.has(machine.id)) {
@@ -1138,7 +1229,7 @@
                         clickedLi.classList.add('is-present');
                     }
                     savePresentMachines(); // Zapisz zmiany do localStorage
-                    showView('main');
+                    // showView('main'); // Nie ma potrzeby odświeżania całego widoku, tylko stanu elementu
                 }
             });
 
@@ -1178,6 +1269,8 @@
 
                             if (id && name) {
                                 newMachines.push({ id: id, name: name, status: status, category: category });
+                            } else {
+                                console.warn(`Wiersz Excela nr ${i + 1} został zignorowany (brak ID lub Nazwy):`, row);
                             }
                         }
 
@@ -1188,6 +1281,7 @@
                         currentSearchTerm = '';
                         searchInput.value = '';
                         expandedCategories.clear(); // Wyczyść stan rozwiniętych kategorii po wczytaniu nowego pliku
+                        markedMissingHistory = []; // Wyczyść historię cofania
                         showView('main');
                     };
 
@@ -1214,6 +1308,25 @@
             showStatusListBtnTop.addEventListener('click', () => {
                 showView('status');
             });
+
+            // Obsługa przycisku "Cofnij" na liście brakujących maszyn
+            undoMissingMachineBtn.addEventListener('click', () => {
+                if (markedMissingHistory.length > 0) {
+                    const lastMarkedId = markedMissingHistory.pop(); // Pobierz ostatnio zaznaczony ID
+                    presentMachinesIds.delete(lastMarkedId); // Usuń go z listy obecnych
+                    savePresentMachines(); // Zapisz zmiany
+
+                    // Zaktualizuj widok brakujących maszyn
+                    renderMissingMachines();
+
+                    // Zaktualizuj główny widok maszyn, jeśli maszyna jest tam widoczna
+                    const mainViewLi = document.querySelector(`#machineList li[data-id="${lastMarkedId}"]`);
+                    if (mainViewLi) {
+                        mainViewLi.classList.remove('is-present');
+                    }
+                }
+            });
+
 
             // Inicjalne wczytywanie danych i renderowanie listy maszyn po załadowaniu strony
             loadAllMachines(); // Wczytaj wszystkie maszyny
